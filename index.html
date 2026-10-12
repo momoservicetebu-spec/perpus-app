@@ -4127,9 +4127,6 @@
     async function importMembersFromExcel(event) {
       const file = event.target.files?.[0];
       if (!file) return;
-      
-      const labelBtn = event.target.previousElementSibling.querySelector('label');
-      if(labelBtn) labelBtn.innerHTML = '<div class="loading-spinner mx-auto"></div>';
 
       try {
         const buffer = await file.arrayBuffer();
@@ -4140,63 +4137,72 @@
 
         const clean = value => String(value ?? '').trim();
         const firstRow = rows[0].map(clean);
-        // Cek header
         const looksLikeHeader = firstRow.some(value => /nama|name|kelas|class|telepon|phone|hp/i.test(value));
         const dataRows = looksLikeHeader ? rows.slice(1) : rows;
-        
-        const records = dataRows.map(row => {
+
+        const parsedMembers = dataRows.map(row => {
           const values = row.map(clean);
           return {
-            type: 'member',
             memberName: values[0] || '-',
             memberClass: values[1] || '-',
-            memberPhone: values[2] || '-',
-            timestamp: new Date().toISOString()
+            memberPhone: values[2] || '-'
           };
-        }).filter(member => member.memberName !== '-');
+        }).filter(m => m.memberName !== '-');
 
-        // Mencegah nama duplikat
-        const existingMembers = new Set(getRecordsByType('member').map(m => clean(m.memberName).toLowerCase()));
-        const uniqueRecords = records.filter(member => {
-          const nameKey = member.memberName.toLowerCase();
-          if (existingMembers.has(nameKey)) return false;
-          existingMembers.add(nameKey);
-          return true;
-        });
-
-        if (!uniqueRecords.length) {
-          showToast('Tidak ada data anggota baru (atau semua nama sudah terdaftar).', 'info');
+        if (!parsedMembers.length) {
+          showToast('Tidak ada data anggota valid di file.', 'info');
           event.target.value = '';
-          if(labelBtn) labelBtn.innerHTML = '📥 Pilih File Excel / CSV';
           return;
         }
 
-        let imported = 0;
-        let failed = 0;
-        for (const member of uniqueRecords) {
-          const result = await window.dataSdk.create(member);
-          if (result.isOk) imported++; else failed++;
+        const progress = createProgressModal('🔄 Mengimpor Data Anggota');
+        const existingMembers = getRecordsByType('member');
+        let addedCount = 0;
+        let updatedCount = 0;
+        let failedCount = 0;
+
+        for (let i = 0; i < parsedMembers.length; i++) {
+          const item = parsedMembers[i];
+          const existing = existingMembers.find(m => clean(m.memberName).toLowerCase() === item.memberName.toLowerCase());
+
+          if (existing) {
+            // Nama sama -> Timpa/Update kelas dan telepon
+            const updatedRecord = {
+              ...existing,
+              memberClass: item.memberClass,
+              memberPhone: item.memberPhone
+            };
+            progress.update(i + 1, parsedMembers.length, `Menimpa anggota: ${item.memberName}`);
+            const res = await window.dataSdk.update(updatedRecord);
+            if (res.isOk) updatedCount++; else failedCount++;
+          } else {
+            // Nama baru -> Tambah anggota baru
+            const newRecord = {
+              type: 'member',
+              ...item,
+              timestamp: new Date().toISOString()
+            };
+            progress.update(i + 1, parsedMembers.length, `Menambah anggota baru: ${item.memberName}`);
+            const res = await window.dataSdk.create(newRecord);
+            if (res.isOk) addedCount++; else failedCount++;
+          }
         }
-        
-        const skipped = records.length - uniqueRecords.length;
-        showToast(`${imported} anggota berhasil diimpor${failed ? `, ${failed} gagal` : ''}${skipped ? `, ${skipped} dilewati (duplikat)` : ''}.`, failed ? 'error' : 'success');
+
+        progress.close();
+        showToast(`Impor Selesai! ${addedCount} baru, ${updatedCount} ditimpa${failedCount ? `, ${failedCount} gagal` : ''}.`, 'success');
+
       } catch (error) {
-        showToast('File Excel tidak dapat dibaca. Pastikan formatnya .xlsx atau .csv.', 'error');
+        showToast('File Excel/CSV tidak dapat dibaca.', 'error');
       } finally {
         event.target.value = '';
-        if(labelBtn) labelBtn.innerHTML = '📥 Pilih File Excel / CSV';
       }
     }
 
     async function importBooksFromExcel(event) {
       const file = event.target.files?.[0];
       if (!file) return;
+
       try {
-        if (appState.allRecords.length >= 999) {
-          showToast('Canva Sheet sudah mencapai batas 999 data.', 'error');
-          event.target.value = '';
-          return;
-        }
         const buffer = await file.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -4207,49 +4213,103 @@
         const firstRow = rows[0].map(clean);
         const looksLikeHeader = firstRow.some(value => /barcode|isbn|judul|title|penulis|author|kategori|category|tahun|year|stok|stock|penerbit|publisher/i.test(value));
         const dataRows = looksLikeHeader ? rows.slice(1) : rows;
-        const records = dataRows.map(row => {
+
+        const parsedBooks = dataRows.map(row => {
           const values = row.map(clean);
-          const numericBarcode = values[0].replace(/\.0+$/, '');
+          const barcode = values[0].replace(/\.0+$/, '');
           return {
-            type: 'book',
-            bookBarcode: numericBarcode || generateBarcode(),
+            bookBarcode: barcode || generateBarcode(),
             bookTitle: values[1] || '-',
             bookAuthor: values[2] || '-',
             bookCategory: values[3] || '-',
             bookPublisher: values.length >= 7 ? (values[4] || '-') : '-',
             bookYear: Number(values.length >= 7 ? values[5] : values[4]) || 0,
-            bookStock: Math.max(0, Number(values.length >= 7 ? values[6] : values[5]) || 0),
-            timestamp: new Date().toISOString()
+            bookStock: Math.max(0, Number(values.length >= 7 ? values[6] : values[5]) || 0)
           };
-        }).filter(book => book.bookTitle !== '-' && book.bookAuthor !== '-');
+        }).filter(b => b.bookTitle !== '-' && b.bookAuthor !== '-');
 
-        const existingBarcodes = new Set(getRecordsByType('book').map(book => clean(book.bookBarcode)));
-        const uniqueRecords = records.filter(book => {
-          if (existingBarcodes.has(book.bookBarcode)) return false;
-          existingBarcodes.add(book.bookBarcode);
-          return true;
-        });
-        const available = Math.max(0, 999 - appState.allRecords.length);
-        const importRecords = uniqueRecords.slice(0, available);
-        if (!importRecords.length) {
-          showToast('Tidak ada baris buku baru yang dapat diimpor.', 'info');
+        if (!parsedBooks.length) {
+          showToast('Tidak ada data buku valid di file.', 'info');
           event.target.value = '';
           return;
         }
 
-        let imported = 0;
-        let failed = 0;
-        for (const book of importRecords) {
-          const result = await window.dataSdk.create(book);
-          if (result.isOk) imported++; else failed++;
+        const progress = createProgressModal('🔄 Mengimpor Data Buku');
+        const existingBooks = getRecordsByType('book');
+        let addedCount = 0;
+        let updatedCount = 0;
+        let failedCount = 0;
+
+        for (let i = 0; i < parsedBooks.length; i++) {
+          const item = parsedBooks[i];
+          const existing = existingBooks.find(b => clean(b.bookBarcode) === item.bookBarcode);
+
+          if (existing) {
+            // Barcode sama -> Timpa/Update data lama
+            const updatedRecord = {
+              ...existing,
+              bookTitle: item.bookTitle,
+              bookAuthor: item.bookAuthor,
+              bookCategory: item.bookCategory,
+              bookPublisher: item.bookPublisher,
+              bookYear: item.bookYear,
+              bookStock: item.bookStock
+            };
+            progress.update(i + 1, parsedBooks.length, `Menimpa data: ${item.bookTitle}`);
+            const res = await window.dataSdk.update(updatedRecord);
+            if (res.isOk) updatedCount++; else failedCount++;
+          } else {
+            // Barcode baru -> Buat record baru
+            const newRecord = {
+              type: 'book',
+              ...item,
+              timestamp: new Date().toISOString()
+            };
+            progress.update(i + 1, parsedBooks.length, `Menambah baru: ${item.bookTitle}`);
+            const res = await window.dataSdk.create(newRecord);
+            if (res.isOk) addedCount++; else failedCount++;
+          }
         }
-        const skipped = records.length - importRecords.length;
-        showToast(`${imported} buku berhasil diimpor${failed ? `, ${failed} gagal` : ''}${skipped ? `, ${skipped} dilewati` : ''}.`, failed ? 'error' : 'success');
+
+        progress.close();
+        showToast(`Impor Selesai! ${addedCount} baru, ${updatedCount} ditimpa${failedCount ? `, ${failedCount} gagal` : ''}.`, 'success');
+
       } catch (error) {
-        showToast('File Excel tidak dapat dibaca. Pastikan formatnya .xlsx atau .xls.', 'error');
+        showToast('File Excel/CSV tidak dapat dibaca.', 'error');
       } finally {
         event.target.value = '';
       }
+    }
+
+    function createProgressModal(title) {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center z-50 p-4';
+      modal.innerHTML = `
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full text-center">
+          <h3 class="text-lg font-bold text-gray-800 mb-4">${title}</h3>
+          <div class="w-full bg-gray-200 rounded-full h-4 mb-3 overflow-hidden">
+            <div id="importProgressBar" class="bg-blue-600 h-4 rounded-full transition-all duration-200" style="width: 0%"></div>
+          </div>
+          <p id="importProgressText" class="text-sm text-gray-600 font-semibold">0% (0 / 0)</p>
+          <p id="importProgressDetail" class="text-xs text-gray-500 mt-2">Menyiapkan data...</p>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      return {
+        update(current, total, detailText = '') {
+          const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+          const bar = modal.querySelector('#importProgressBar');
+          const text = modal.querySelector('#importProgressText');
+          const detail = modal.querySelector('#importProgressDetail');
+          if (bar) bar.style.width = `${percent}%`;
+          if (text) text.textContent = `${percent}% (${current} dari ${total})`;
+          if (detail && detailText) detail.textContent = detailText;
+        },
+        close() {
+          modal.remove();
+        }
+      };
     }
 
     async function restoreBackupJSON(event) {
