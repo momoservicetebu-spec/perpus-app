@@ -596,7 +596,7 @@
         // Tombol cetak tersedia untuk semua role
         const printBtn = `<button onclick="cetakKartu('${member.__backendId}')" class="text-green-600 hover:text-green-800 mr-3" title="Cetak Kartu Anggota">🖨️ Cetak</button>`;
         
-        // Tombol edit & hapus hanya untuk admin
+        // Tombol edit & hapus hanya untuk admin / pustakawan (Bukan Kasir)
         const actionButtons = isKasir 
           ? printBtn
           : printBtn + `<button onclick="editMember('${member.__backendId}')" class="text-blue-600 hover:text-blue-800 mr-3">✏️ Edit</button>
@@ -622,15 +622,29 @@
         <div>
           <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Data Anggota</h1>
-            ${!isKasir ? `
-            <button 
-              onclick="showAddMemberModal()"
-              class="px-6 py-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transition-all"
-              style="background: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};"
-            >
-              ➕ Tambah Anggota
-            </button>
-            ` : ''}
+            
+            <!-- Wrapper untuk tombol-tombol agar berjajar rapi -->
+            <div class="flex gap-3">
+              <!-- Tombol Cetak Semua -->
+              <button 
+                onclick="cetakSemuaKartu()"
+                class="px-6 py-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+                style="background: #10b981;"
+              >
+                🖨️ Cetak Semua
+              </button>
+
+              ${!isKasir ? `
+              <!-- Tombol Tambah Anggota -->
+              <button 
+                onclick="showAddMemberModal()"
+                class="px-6 py-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+                style="background: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};"
+              >
+                ➕ Tambah Anggota
+              </button>
+              ` : ''}
+            </div>
           </div>
 
           <div class="bg-white rounded-xl shadow overflow-hidden">
