@@ -199,11 +199,11 @@
 
     // Menu configuration with RBAC
     const menuItems = [
-      { id: 'dashboard', label: '📊 Dashboard', roles: ['Admin', 'Pustakawan'] },
-      { id: 'books', label: '📚 Koleksi Buku', roles: ['Admin', 'Pustakawan'] },
-      { id: 'members', label: '👥 Data Anggota', roles: ['Admin', 'Pustakawan'] },
-      { id: 'loans', label: '📤 Peminjaman', roles: ['Admin', 'Pustakawan'] },
-      { id: 'returns', label: '📥 Pengembalian', roles: ['Admin', 'Pustakawan'] },
+      { id: 'dashboard', label: '📊 Dashboard', roles: ['Admin', 'Pustakawan', 'Kasir Buku'] },
+      { id: 'books', label: '📚 Koleksi Buku', roles: ['Admin', 'Pustakawan', 'Kasir Buku'] },
+      { id: 'members', label: '👥 Data Anggota', roles: ['Admin', 'Pustakawan', 'Kasir Buku'] },
+      { id: 'loans', label: '📤 Peminjaman', roles: ['Admin', 'Pustakawan', 'Kasir Buku'] },
+      { id: 'returns', label: '📥 Pengembalian', roles: ['Admin', 'Pustakawan', 'Kasir Buku'] },
       { id: 'visitors', label: '📝 Buku Tamu', roles: ['Admin', 'Pustakawan'] },
       { id: 'fines', label: '💰 Denda', roles: ['Admin', 'Pustakawan'] },
       { id: 'categories', label: '🏷️ Kategori', roles: ['Admin'] },
@@ -211,7 +211,7 @@
       { id: 'statistics', label: '📈 Statistik', roles: ['Admin'] },
       { id: 'users', label: '👤 Manajemen User', roles: ['Admin'] },
       { id: 'settings', label: '⚙️ Pengaturan', roles: ['Admin'] },
-      { id: 'help', label: '❓ Bantuan', roles: ['Admin', 'Pustakawan'] }
+      { id: 'help', label: '❓ Bantuan', roles: ['Admin', 'Pustakawan', 'Kasir Buku'] }
     ];
 
     // Utility Functions
@@ -514,14 +514,43 @@
       `;
     }
 
-    // Section: Books Management
+   // Section: Books Management
     function renderBooksSection() {
       const books = getRecordsByType('book');
+      const isKasir = appState.currentUser.role === 'Kasir Buku';
 
+      // 1. Bangun isi tabel terlebih dahulu di luar return
+      const tableRows = books.map(book => {
+        const actionButtons = isKasir 
+          ? '<span class="text-xs text-gray-400 italic">Hanya lihat</span>'
+          : `<div class="flex gap-2">
+              <button onclick="editBook('${book.__backendId}')" class="text-blue-600 hover:text-blue-800 text-lg md:text-base" title="Edit">✏️</button>
+              <button onclick="deleteBook('${book.__backendId}')" class="text-red-600 hover:text-red-800 text-lg md:text-base" title="Hapus">🗑️</button>
+            </div>`;
+
+        return `
+          <tr class="table-row border-t">
+            <td class="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-mono">${book.bookBarcode}</td>
+            <td class="px-4 md:px-6 py-3 md:py-4 text-sm md:text-base font-semibold">${book.bookTitle}</td>
+            <td class="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm">${book.bookAuthor}</td>
+            <td class="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm">${book.bookCategory}</td>
+            <td class="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm">${book.bookYear}</td>
+            <td class="px-4 md:px-6 py-3 md:py-4"><span class="px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-semibold" style="background: ${window.elementSdk?.config?.success_color || defaultConfig.success_color}20; color: ${window.elementSdk?.config?.success_color || defaultConfig.success_color};">${book.bookStock}</span></td>
+            <td class="px-4 md:px-6 py-3 md:py-4">
+              ${actionButtons}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      const emptyRow = '<tr><td colspan="7" class="px-4 md:px-6 py-8 md:py-12 text-center text-gray-500 text-sm md:text-base">Belum ada data buku. Tambahkan buku pertama Anda!</td></tr>';
+
+      // 2. Return HTML utama yang sudah bersih
       return `
         <div>
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
             <h1 class="text-2xl md:text-3xl font-bold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Koleksi Buku</h1>
+            ${!isKasir ? `
             <button 
               onclick="showAddBookModal()"
               class="w-full sm:w-auto px-4 md:px-6 py-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transition-all"
@@ -529,6 +558,7 @@
             >
               ➕ Tambah Buku
             </button>
+            ` : ''}
           </div>
 
           <div class="bg-white rounded-xl shadow overflow-hidden">
@@ -546,22 +576,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  ${books.map(book => `
-                    <tr class="table-row border-t">
-                      <td class="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-mono">${book.bookBarcode}</td>
-                      <td class="px-4 md:px-6 py-3 md:py-4 text-sm md:text-base font-semibold">${book.bookTitle}</td>
-                      <td class="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm">${book.bookAuthor}</td>
-                      <td class="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm">${book.bookCategory}</td>
-                      <td class="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm">${book.bookYear}</td>
-                      <td class="px-4 md:px-6 py-3 md:py-4"><span class="px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-semibold" style="background: ${window.elementSdk?.config?.success_color || defaultConfig.success_color}20; color: ${window.elementSdk?.config?.success_color || defaultConfig.success_color};">${book.bookStock}</span></td>
-                      <td class="px-4 md:px-6 py-3 md:py-4">
-                        <div class="flex gap-2">
-                          <button onclick="editBook('${book.__backendId}')" class="text-blue-600 hover:text-blue-800 text-lg md:text-base" title="Edit">✏️</button>
-                          <button onclick="deleteBook('${book.__backendId}')" class="text-red-600 hover:text-red-800 text-lg md:text-base" title="Hapus">🗑️</button>
-                        </div>
-                      </td>
-                    </tr>
-                  `).join('') || '<tr><td colspan="7" class="px-4 md:px-6 py-8 md:py-12 text-center text-gray-500 text-sm md:text-base">Belum ada data buku. Tambahkan buku pertama Anda!</td></tr>'}
+                  ${tableRows || emptyRow}
                 </tbody>
               </table>
             </div>
@@ -573,11 +588,36 @@
     // Section: Members Management
     function renderMembersSection() {
       const members = getRecordsByType('member');
+      const isKasir = appState.currentUser.role === 'Kasir Buku';
 
+      // 1. Bangun isi tabel terlebih dahulu di luar return
+      const memberRows = members.map(member => {
+        const actionButtons = isKasir 
+          ? '<span class="text-xs text-gray-400 italic">Hanya lihat</span>'
+          : `<button onclick="editMember('${member.__backendId}')" class="text-blue-600 hover:text-blue-800 mr-3">✏️ Edit</button>
+             <button onclick="deleteMember('${member.__backendId}')" class="text-red-600 hover:text-red-800">🗑️ Hapus</button>`;
+
+        return `
+          <tr class="table-row border-t">
+            <td class="px-6 py-4 font-semibold">${member.memberName}</td>
+            <td class="px-6 py-4 text-sm">${member.memberClass}</td>
+            <td class="px-6 py-4 text-sm">${member.memberPhone}</td>
+            <td class="px-6 py-4 text-sm">${formatDate(member.timestamp)}</td>
+            <td class="px-6 py-4">
+              ${actionButtons}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      const emptyMemberRow = '<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">Belum ada data anggota. Tambahkan anggota pertama Anda!</td></tr>';
+
+      // 2. Return HTML utama yang sudah bersih
       return `
         <div>
           <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Data Anggota</h1>
+            ${!isKasir ? `
             <button 
               onclick="showAddMemberModal()"
               class="px-6 py-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transition-all"
@@ -585,6 +625,7 @@
             >
               ➕ Tambah Anggota
             </button>
+            ` : ''}
           </div>
 
           <div class="bg-white rounded-xl shadow overflow-hidden">
@@ -600,18 +641,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  ${members.map(member => `
-                    <tr class="table-row border-t">
-                      <td class="px-6 py-4 font-semibold">${member.memberName}</td>
-                      <td class="px-6 py-4 text-sm">${member.memberClass}</td>
-                      <td class="px-6 py-4 text-sm">${member.memberPhone}</td>
-                      <td class="px-6 py-4 text-sm">${formatDate(member.timestamp)}</td>
-                      <td class="px-6 py-4">
-                        <button onclick="editMember('${member.__backendId}')" class="text-blue-600 hover:text-blue-800 mr-3">✏️ Edit</button>
-                        <button onclick="deleteMember('${member.__backendId}')" class="text-red-600 hover:text-red-800">🗑️ Hapus</button>
-                      </td>
-                    </tr>
-                  `).join('') || '<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">Belum ada data anggota. Tambahkan anggota pertama Anda!</td></tr>'}
+                  ${memberRows || emptyMemberRow}
                 </tbody>
               </table>
             </div>
@@ -619,7 +649,6 @@
         </div>
       `;
     }
-
     // Section: Loans Management
     function renderLoansSection() {
       const loans = getRecordsByType('loan').filter(l => l.loanStatus === 'dipinjam');
@@ -3466,6 +3495,7 @@
                 <option value="">-- Pilih Role --</option>
                 <option value="Admin">👑 Admin - Akses penuh sistem</option>
                 <option value="Pustakawan">📚 Pustakawan - Operasional perpustakaan</option>
+                <option value="Kasir Buku">Kasir Buku</option>
               </select>
             </div>
             <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -3768,7 +3798,7 @@
           </div>
 
           <!-- User Statistics -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="card bg-white rounded-xl shadow p-6 border-l-4" style="border-color: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};">
               <div class="flex justify-between items-start">
                 <div>
@@ -3779,7 +3809,7 @@
               </div>
             </div>
 
-            <div class="card bg-white rounded-xl shadow p-6 border-l-4" style="border-color: ${window.elementSdk?.config?.success_color || defaultConfig.success_color};">
+            <div class="card bg-white rounded-xl shadow p-6 border-l-4" style="border-color: ${window.elementSdk?.config?.danger_color || defaultConfig.danger_color};">
               <div class="flex justify-between items-start">
                 <div>
                   <p class="text-gray-600 text-sm">Admin</p>
@@ -3789,7 +3819,7 @@
               </div>
             </div>
 
-            <div class="card bg-white rounded-xl shadow p-6 border-l-4" style="border-color: #f59e0b;">
+            <div class="card bg-white rounded-xl shadow p-6 border-l-4" style="border-color: ${window.elementSdk?.config?.success_color || defaultConfig.success_color};">
               <div class="flex justify-between items-start">
                 <div>
                   <p class="text-gray-600 text-sm">Pustakawan</p>
@@ -3798,32 +3828,45 @@
                 <div class="text-4xl">📚</div>
               </div>
             </div>
+
+            <div class="card bg-white rounded-xl shadow p-6 border-l-4" style="border-color: #8b5cf6;">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="text-gray-600 text-sm">Kasir Buku</p>
+                  <p class="text-3xl font-bold mt-2" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">${users.filter(u => u.role === 'Kasir Buku').length}</p>
+                </div>
+                <div class="text-4xl">💳</div>
+              </div>
+            </div>
           </div>
 
           <!-- Role Information -->
           <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
             <h3 class="font-bold text-lg mb-4" style="color: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};">ℹ️ Informasi Role & Hak Akses</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <p class="font-bold mb-2" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">👑 Admin</p>
                 <ul class="text-sm text-gray-700 space-y-1 ml-4 list-disc">
                   <li>Akses penuh ke semua menu</li>
                   <li>Manajemen user (tambah, edit, hapus)</li>
                   <li>Manajemen kategori buku</li>
-                  <li>Lihat statistik lengkap</li>
-                  <li>Export data & laporan</li>
                   <li>Pengaturan sistem</li>
                 </ul>
               </div>
               <div>
                 <p class="font-bold mb-2" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">📚 Pustakawan</p>
                 <ul class="text-sm text-gray-700 space-y-1 ml-4 list-disc">
-                  <li>Kelola koleksi buku</li>
+                  <li>Kelola (tambah/edit) koleksi buku</li>
                   <li>Kelola data anggota</li>
                   <li>Proses peminjaman & pengembalian</li>
-                  <li>Kelola denda</li>
-                  <li>Export laporan</li>
-                  <li>Akses bantuan</li>
+                </ul>
+              </div>
+              <div>
+                <p class="font-bold mb-2" style="color: #8b5cf6;">💳 Kasir Buku</p>
+                <ul class="text-sm text-gray-700 space-y-1 ml-4 list-disc">
+                  <li>Hanya memproses Peminjaman & Pengembalian</li>
+                  <li>Melihat data buku & anggota (tanpa akses edit/tambah)</li>
+                  <li>Tidak dapat mengakses menu pengaturan & user</li>
                 </ul>
               </div>
             </div>
@@ -3846,18 +3889,22 @@
                 <tbody>
                   ${users.map(user => {
                     const isCurrentUser = appState.currentUser.__backendId === user.__backendId;
+                    const roleColor = user.role === 'Admin' ? (window.elementSdk?.config?.danger_color || defaultConfig.danger_color) : 
+                                      user.role === 'Kasir Buku' ? '#8b5cf6' : 
+                                      (window.elementSdk?.config?.success_color || defaultConfig.success_color);
+                    const roleIcon = user.role === 'Admin' ? '👑' : user.role === 'Kasir Buku' ? '💳' : '📚';
+                    
                     return `
                       <tr class="table-row border-t ${isCurrentUser ? 'bg-blue-50' : ''}">
                         <td class="px-6 py-4">
                           <div class="flex items-center gap-2">
-                            <span class="font-mono font-semibold">${user.username}</span>
-                            ${isCurrentUser ? '<span class="px-2 py-1 rounded text-xs font-semibold" style="background: ' + (window.elementSdk?.config?.primary_color || defaultConfig.primary_color) + '20; color: ' + (window.elementSdk?.config?.primary_color || defaultConfig.primary_color) + ';">Anda</span>' : ''}
+                            <span class="font-mono font-semibold">${user.username}</span>${isCurrentUser ? '<span class="px-2 py-1 rounded text-xs font-semibold" style="background: ' + (window.elementSdk?.config?.primary_color || defaultConfig.primary_color) + '20; color: ' + (window.elementSdk?.config?.primary_color || defaultConfig.primary_color) + ';">Anda</span>' : ''}
                           </div>
                         </td>
                         <td class="px-6 py-4 font-semibold">${user.fullName}</td>
                         <td class="px-6 py-4">
-                          <span class="px-3 py-1 rounded-full text-sm font-semibold" style="background: ${user.role === 'Admin' ? window.elementSdk?.config?.danger_color || defaultConfig.danger_color : window.elementSdk?.config?.success_color || defaultConfig.success_color}20; color: ${user.role === 'Admin' ? window.elementSdk?.config?.danger_color || defaultConfig.danger_color : window.elementSdk?.config?.success_color || defaultConfig.success_color};">
-                            ${user.role === 'Admin' ? '👑' : '  '} ${user.role}
+                          <span class="px-3 py-1 rounded-full text-sm font-semibold" style="background: ${roleColor}20; color:${roleColor};">
+                            ${roleIcon}${user.role}
                           </span>
                         </td>
                         <td class="px-6 py-4 text-sm">${formatDate(user.timestamp)}</td>
@@ -3880,6 +3927,7 @@
               </table>
             </div>
           </div>
+        </div>
 
           <!-- Security Tips -->
           <div class="mt-8 bg-yellow-50 border border-yellow-200 rounded-xl p-6">
