@@ -103,8 +103,7 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" type="text/javascript"></script>
   <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js" type="text/javascript"></script>
-  
- </head><script>
+  <script>
   // GANTI DENGAN URL GOOGLE APPS SCRIPT ANDA
   const GAS_URL = "https://script.google.com/macros/s/AKfycbwnRb6cqYz0yJ1oDzIHqwLZiSU77KCc1BJ8az07iA9xbjbti5m13q9EaY-veLwkah5f/exec";
 
@@ -169,6 +168,8 @@
   // Mock Element SDK (karena kita hapus SDK Canva)
   window.elementSdk = { config: null };
 </script>
+
+ </head>
  <body class="h-full bg-gray-50">
   <div id="app" class="h-full w-full"></div>
   <script>
@@ -4801,13 +4802,12 @@
 
       render();
       } catch (error) {
+        console.error("Error memuat aplikasi:", error);
         appRoot.innerHTML = `
-          <div class="h-full w-full flex items-center justify-center p-6" style="background:#24351f;">
-            <div class="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl">
-              <div class="mb-4 text-4xl">⚠️</div>
-              <h1 class="text-xl font-bold text-gray-800">Dashboard belum dapat dimuat</h1>
-              <p class="mt-2 text-sm text-gray-500">Silakan muat ulang halaman Canva, lalu coba lagi.</p>
-              <p class="mt-6 rounded-lg bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">Muat ulang pratinjau Canva untuk mencoba lagi.</p>
+          <div class="h-full w-full flex items-center justify-center p-6 bg-gray-100">
+            <div class="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-lg">
+              <h1 class="text-xl font-bold text-red-600 mb-2">Gagal Terhubung ke Database</h1>
+              <p class="text-sm text-gray-600">Pastikan URL Google Apps Script Anda sudah benar dan Anda memiliki koneksi internet.</p>
             </div>
           </div>
         `;
