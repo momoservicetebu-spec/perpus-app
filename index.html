@@ -3935,7 +3935,7 @@
       `;
     }
 
-    // Section: Settings
+   // Section: Settings
     function renderSettingsSection() {
       return `
         <div>
@@ -3984,62 +3984,64 @@
             </div>
 
             <div class="bg-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold mb-4" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">💾 Backup & Export Data</h2>
-              <p class="text-gray-600 mb-4">Export semua data sistem untuk backup atau migrasi</p>
+              <h2 class="text-xl font-bold mb-4" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">💾 Backup, Export & Import Data</h2>
+              <p class="text-gray-600 mb-4">Kelola data sistem secara massal dari sini.</p>
+              
+              <!-- Backup Data -->
               <div class="flex flex-col sm:flex-row gap-3">
-                <button 
-                  onclick="exportAllData()"
-                  class="flex-1 px-6 py-3 rounded-lg text-white font-semibold shadow hover:shadow-lg transition-all"
-                  style="background: ${window.elementSdk?.config?.success_color || defaultConfig.success_color};"
-                >
+                <button onclick="exportAllData()" class="flex-1 px-6 py-3 rounded-lg text-white font-semibold shadow hover:shadow-lg transition-all" style="background: ${window.elementSdk?.config?.success_color || defaultConfig.success_color};">
                   📊 Export Semua Data (CSV)
                 </button>
-                <button 
-                  onclick="downloadBackupJSON()"
-                  class="flex-1 px-6 py-3 rounded-lg text-white font-semibold shadow hover:shadow-lg transition-all"
-                  style="background: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};"
-                >
+                <button onclick="downloadBackupJSON()" class="flex-1 px-6 py-3 rounded-lg text-white font-semibold shadow hover:shadow-lg transition-all" style="background: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};">
                   💾 Backup Aman (JSON)
                 </button>
               </div>
-              <div class="mt-5 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p class="font-semibold mb-1" style="color: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};">🔄 Restore setelah pembaruan</p>
-                <p class="text-sm text-gray-700 mb-3">Pilih file backup JSON dari versi sebelumnya. Data akan ditambahkan kembali ke Canva Sheet.</p>
-                <label for="restoreBackupFile" class="block text-sm font-medium mb-2">Pilih file backup</label>
-                <input id="restoreBackupFile" type="file" accept="application/json,.json" onchange="restoreBackupJSON(event)" class="w-full px-3 py-2 border-2 border-blue-200 rounded-lg bg-white text-sm">
-                <p class="text-xs text-gray-500 mt-2">Simpan file backup di tempat aman sebelum memasang versi baru.</p>
-              </div>
 
+              <!-- Impor Buku -->
               <div class="mt-5 p-5 bg-green-50 border-2 border-green-200 rounded-xl">
                 <div class="flex items-start gap-3 mb-2">
                   <div class="text-2xl">📗</div>
                   <div>
                     <p class="font-bold text-lg" style="color: ${window.elementSdk?.config?.success_color || defaultConfig.success_color};">Impor Data Buku dari Excel / CSV</p>
-                    <p class="text-sm text-gray-700 mt-1">Tambahkan banyak buku sekaligus ke Koleksi Buku dan Canva Sheet.</p>
+                    <p class="text-sm text-gray-700 mt-1">Tambahkan banyak buku sekaligus ke Koleksi Buku.</p>
                   </div>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3 mt-4">
                   <label for="importBooksExcel" class="flex-1 cursor-pointer text-center px-4 py-3 rounded-lg text-white font-semibold hover:opacity-90" style="background: ${window.elementSdk?.config?.success_color || defaultConfig.success_color};">
                     📥 Pilih File Excel / CSV
                   </label>
-                  <button type="button" onclick="downloadBookTemplateCSV()" class="flex-1 px-4 py-3 rounded-lg font-semibold border-2 hover:bg-white" style="border-color: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color}; color: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};">
-                    📄 Unduh Template CSV
+                  <button type="button" onclick="downloadBookTemplateCSV()" class="flex-1 px-4 py-3 rounded-lg font-semibold border-2 hover:bg-white border-green-600 text-green-600">
+                    📄 Unduh Template Buku
                   </button>
                 </div>
                 <input id="importBooksExcel" type="file" accept=".xlsx,.xls,.csv" onchange="importBooksFromExcel(event)" class="sr-only">
-                <p class="text-xs text-gray-600 mt-3">Kolom wajib: Barcode, Judul Buku, Penulis, Kategori, Tahun Terbit, Stok. Kolom Penerbit juga didukung.</p>
-                <p class="text-xs text-gray-500 mt-1">Template CSV dapat dibuka di Excel, diisi, lalu dipilih melalui tombol impor.</p>
               </div>
-            </div>
 
-            <div class="bg-white rounded-xl shadow p-6">
-              <h2 class="text-xl font-bold mb-4" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">📖 Tentang Aplikasi</h2>
-              <div class="space-y-3 text-gray-700">
-                <p><strong>Nama Aplikasi:</strong> Dashboard Perpustakaan Sekolah</p>
-                <p><strong>Versi:</strong> 1.0.0</p>
-                <p><strong>Developer:</strong> ${window.elementSdk?.config?.footer_credit || defaultConfig.footer_credit}</p>
-                <p><strong>Fitur:</strong> Manajemen Buku, Anggota, Peminjaman, Pengembalian, Denda, Laporan, Statistik</p>
-                <p class="pt-4 border-t"><strong>Catatan:</strong> Aplikasi ini dibuat untuk mempermudah pengelolaan perpustakaan sekolah dengan sistem digital yang modern dan user-friendly.</p>
+              <!-- Impor Anggota -->
+              <div class="mt-5 p-5 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                <div class="flex items-start gap-3 mb-2">
+                  <div class="text-2xl">👥</div>
+                  <div>
+                    <p class="font-bold text-lg" style="color: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};">Impor Data Anggota dari Excel / CSV</p>
+                    <p class="text-sm text-gray-700 mt-1">Daftarkan banyak anggota (siswa) sekaligus.</p>
+                  </div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 mt-4">
+                  <label for="importMembersExcel" class="flex-1 cursor-pointer text-center px-4 py-3 rounded-lg text-white font-semibold hover:opacity-90" style="background: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};">
+                    📥 Pilih File Excel / CSV
+                  </label>
+                  <button type="button" onclick="downloadMemberTemplateCSV()" class="flex-1 px-4 py-3 rounded-lg font-semibold border-2 hover:bg-white border-blue-600 text-blue-600">
+                    📄 Unduh Template Anggota
+                  </button>
+                </div>
+                <input id="importMembersExcel" type="file" accept=".xlsx,.xls,.csv" onchange="importMembersFromExcel(event)" class="sr-only">
+              </div>
+
+              <!-- Restore Backup -->
+              <div class="mt-5 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <p class="font-semibold mb-1">🔄 Restore setelah pembaruan</p>
+                <p class="text-sm text-gray-700 mb-3">Pilih file backup JSON. Data akan ditambahkan ke Database.</p>
+                <input id="restoreBackupFile" type="file" accept="application/json,.json" onchange="restoreBackupJSON(event)" class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg bg-white text-sm">
               </div>
             </div>
           </div>
@@ -4088,17 +4090,102 @@
       }
     }
 
-    function downloadBookTemplateCSV() {
+   function downloadBookTemplateCSV() {
       const headers = ['Barcode', 'Judul Buku', 'Penulis', 'Kategori', 'Penerbit', 'Tahun Terbit', 'Stok'];
       const exampleRows = [
         ['9786020000000', 'Contoh Judul Buku', 'Nama Penulis', 'Pelajaran', 'Nama Penerbit', '2024', '10']
       ];
-      const csvContent = [
-        headers.join(','),
-        ...exampleRows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(','))
+      
+      // \uFEFF adalah BOM untuk memaksa Excel membacanya dengan format UTF-8 yang benar
+      // dan kita gunakan titik koma (;) khusus untuk setelan Excel Indonesia
+      const csvContent = "\uFEFF" + [
+        headers.join(';'),
+        ...exampleRows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(';'))
       ].join('\n');
+      
       downloadCSV('template_impor_buku.csv', csvContent);
-      showToast('Template CSV berhasil diunduh. Isi datanya lalu impor melalui tombol Excel.', 'success');
+      showToast('Template Buku berhasil diunduh.', 'success');
+    }
+
+    function downloadMemberTemplateCSV() {
+      const headers = ['Nama Lengkap', 'Kelas', 'No. Telepon'];
+      const exampleRows = [
+        ['Budi Santoso', 'X IPA 1', '081234567890'],
+        ['Siti Aminah', 'XI IPS 2', '089876543210']
+      ];
+      
+      // Tambahkan \uFEFF di awal teks
+      const csvContent = "\uFEFF" + [
+        headers.join(';'),
+        ...exampleRows.map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(';'))
+      ].join('\n');
+      
+      downloadCSV('template_impor_anggota.csv', csvContent);
+      showToast('Template Anggota berhasil diunduh.', 'success');
+    }
+
+    async function importMembersFromExcel(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      
+      const labelBtn = event.target.previousElementSibling.querySelector('label');
+      if(labelBtn) labelBtn.innerHTML = '<div class="loading-spinner mx-auto"></div>';
+
+      try {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+        if (!rows.length) throw new Error('File Excel kosong');
+
+        const clean = value => String(value ?? '').trim();
+        const firstRow = rows[0].map(clean);
+        // Cek header
+        const looksLikeHeader = firstRow.some(value => /nama|name|kelas|class|telepon|phone|hp/i.test(value));
+        const dataRows = looksLikeHeader ? rows.slice(1) : rows;
+        
+        const records = dataRows.map(row => {
+          const values = row.map(clean);
+          return {
+            type: 'member',
+            memberName: values[0] || '-',
+            memberClass: values[1] || '-',
+            memberPhone: values[2] || '-',
+            timestamp: new Date().toISOString()
+          };
+        }).filter(member => member.memberName !== '-');
+
+        // Mencegah nama duplikat
+        const existingMembers = new Set(getRecordsByType('member').map(m => clean(m.memberName).toLowerCase()));
+        const uniqueRecords = records.filter(member => {
+          const nameKey = member.memberName.toLowerCase();
+          if (existingMembers.has(nameKey)) return false;
+          existingMembers.add(nameKey);
+          return true;
+        });
+
+        if (!uniqueRecords.length) {
+          showToast('Tidak ada data anggota baru (atau semua nama sudah terdaftar).', 'info');
+          event.target.value = '';
+          if(labelBtn) labelBtn.innerHTML = '📥 Pilih File Excel / CSV';
+          return;
+        }
+
+        let imported = 0;
+        let failed = 0;
+        for (const member of uniqueRecords) {
+          const result = await window.dataSdk.create(member);
+          if (result.isOk) imported++; else failed++;
+        }
+        
+        const skipped = records.length - uniqueRecords.length;
+        showToast(`${imported} anggota berhasil diimpor${failed ? `, ${failed} gagal` : ''}${skipped ? `, ${skipped} dilewati (duplikat)` : ''}.`, failed ? 'error' : 'success');
+      } catch (error) {
+        showToast('File Excel tidak dapat dibaca. Pastikan formatnya .xlsx atau .csv.', 'error');
+      } finally {
+        event.target.value = '';
+        if(labelBtn) labelBtn.innerHTML = '📥 Pilih File Excel / CSV';
+      }
     }
 
     async function importBooksFromExcel(event) {
