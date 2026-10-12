@@ -6,7 +6,6 @@ body.print-body {
   margin: 0;
 }
 
-/* Pembungkus untuk menata kartu agar berjajar rapi */
 .cards-wrapper {
   display: flex;
   flex-wrap: wrap;
@@ -25,7 +24,6 @@ body.print-body {
   border: 1px solid #e5e7eb;
   position: relative;
   overflow: hidden;
-  /* Mencegah kartu terpotong di antara 2 halaman saat diprint */
   page-break-inside: avoid;
   break-inside: avoid;
 }
@@ -82,20 +80,39 @@ body.print-body {
   font-family: monospace;
 }
 
+/* --- PERBAIKAN UNTUK CETAK (PRINT) AGAR TIDAK MEMBUANG KERTAS --- */
 @media print {
   body.print-body { 
     background-color: white; 
     padding: 0; 
   }
   .cards-wrapper {
-    gap: 15px; /* Jarak antar kartu saat diprint */
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Memaksa layout menjadi 2 kolom */
+    gap: 10px; /* Jarak antar kartu */
+    justify-content: center;
   }
   .member-card { 
+    width: 100%;
+    max-width: 9.5cm; /* Lebar ideal untuk 2 kolom di A4 */
+    height: auto;
+    min-height: 5.5cm;
+    padding: 15px;
     box-shadow: none; 
-    border: 1px solid #000; 
+    border: 1px dashed #000; /* Garis putus-putus agar mudah digunting */
+    border-radius: 0; /* Sudut kotak untuk cetak fisik */
+    margin: 0 auto;
   }
+  
+  /* Menyesuaikan teks agar proporsional di ukuran kartu yang dicetak */
+  .card-header h2 { font-size: 14px; }
+  .card-header p { font-size: 9px; }
+  .card-content { font-size: 12px; line-height: 1.5; }
+  .card-content strong { width: 90px; }
+  .card-footer { font-size: 9px; bottom: 10px; right: 15px; }
+
   @page {
-    margin: 1cm; /* Margin standar untuk kertas A4 */
+    size: A4 portrait; /* Standar ukuran kertas */
+    margin: 1cm;
   }
 }
