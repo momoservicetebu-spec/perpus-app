@@ -1,7 +1,7 @@
 // cetakkartu.js
 
+// 1. Fungsi Cetak 1 Anggota (Berdasarkan ID)
 function cetakKartu(memberId) {
-  // Ambil data dari database/storage (sesuaikan dengan fungsi di sistem Anda)
   const members = getRecordsByType('member');
   const member = members.find(m => m.__backendId === memberId);
   
@@ -10,23 +10,32 @@ function cetakKartu(memberId) {
     return;
   }
 
-  // Buka jendela baru untuk mencetak
+  generatePrintWindow([member], `Cetak Kartu Anggota - ${member.memberName}`);
+}
+
+// 2. Fungsi Cetak SEMUA Anggota
+function cetakSemuaKartu() {
+  const members = getRecordsByType('member');
+  
+  if (!members || members.length === 0) {
+    alert('Belum ada data anggota yang bisa dicetak!');
+    return;
+  }
+
+  generatePrintWindow(members, 'Cetak Semua Kartu Anggota');
+}
+
+// 3. Fungsi Inti untuk Generate HTML dan Membuka Print Window
+function generatePrintWindow(membersArray, title) {
   const printWindow = window.open('', '_blank');
   
-  // Format tanggal (pastikan fungsi formatDate tersedia secara global)
-  const tglDaftar = typeof formatDate === 'function' ? formatDate(member.timestamp) : member.timestamp;
-  const shortId = member.__backendId.substring(0, 8).toUpperCase();
+  // Looping untuk membuat elemen kartu sebanyak jumlah anggota
+  let cardsHtml = '';
+  membersArray.forEach(member => {
+    const tglDaftar = typeof formatDate === 'function' ? formatDate(member.timestamp) : member.timestamp;
+    const shortId = member.__backendId.substring(0, 8).toUpperCase();
 
-  // Template HTML yang akan dicetak
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Cetak Kartu Anggota - ${member.memberName}</title>
-      <!-- Memanggil file CSS eksternal -->
-      <link rel="stylesheet" href="style.css">
-    </head>
-    <body class="print-body">
+    cardsHtml += `
       <div class="member-card">
         <div class="card-header">
           <h2>KARTU ANGGOTA PERPUSTAKAAN</h2>
@@ -42,20 +51,34 @@ function cetakKartu(memberId) {
           ID: ${shortId}
         </div>
       </div>
+    `;
+  });
+
+  // Template utama yang membungkus semua kartu
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>${title}</title>
+      <link rel="stylesheet" href="style.css">
+    </head>
+    <body class="print-body">
+      <div class="cards-wrapper">
+        ${cardsHtml}
+      </div>
       
       <script>
-        // Logika otomatis mencetak saat jendela selesai dimuat
         window.onload = function() {
+          // Memberi waktu sedikit lebih lama agar CSS selesai dimuat
           setTimeout(() => {
             window.print();
-          }, 500);
+          }, 800);
         }
       </script>
     </body>
     </html>
   `;
 
-  // Tulis HTML ke jendela baru dan tutup dokumen agar browser mulai merender
   printWindow.document.open();
   printWindow.document.write(htmlContent);
   printWindow.document.close();
