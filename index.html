@@ -592,9 +592,13 @@
 
       // 1. Bangun isi tabel terlebih dahulu di luar return
       const memberRows = members.map(member => {
+        // Tombol cetak tersedia untuk semua role
+        const printBtn = `<button onclick="cetakKartu('${member.__backendId}')" class="text-green-600 hover:text-green-800 mr-3" title="Cetak Kartu Anggota">🖨️ Cetak</button>`;
+        
+        // Tombol edit & hapus hanya untuk admin
         const actionButtons = isKasir 
-          ? '<span class="text-xs text-gray-400 italic">Hanya lihat</span>'
-          : `<button onclick="editMember('${member.__backendId}')" class="text-blue-600 hover:text-blue-800 mr-3">✏️ Edit</button>
+          ? printBtn
+          : printBtn + `<button onclick="editMember('${member.__backendId}')" class="text-blue-600 hover:text-blue-800 mr-3">✏️ Edit</button>
              <button onclick="deleteMember('${member.__backendId}')" class="text-red-600 hover:text-red-800">🗑️ Hapus</button>`;
 
         return `
@@ -603,7 +607,7 @@
             <td class="px-6 py-4 text-sm">${member.memberClass}</td>
             <td class="px-6 py-4 text-sm">${member.memberPhone}</td>
             <td class="px-6 py-4 text-sm">${formatDate(member.timestamp)}</td>
-            <td class="px-6 py-4">
+            <td class="px-6 py-4 flex items-center">
               ${actionButtons}
             </td>
           </tr>
@@ -612,7 +616,7 @@
 
       const emptyMemberRow = '<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">Belum ada data anggota. Tambahkan anggota pertama Anda!</td></tr>';
 
-      // 2. Return HTML utama yang sudah bersih
+      // 2. Return HTML utama
       return `
         <div>
           <div class="flex justify-between items-center mb-8">
@@ -649,6 +653,8 @@
         </div>
       `;
     }
+
+    
     // Section: Loans Management
     function renderLoansSection() {
       const loans = getRecordsByType('loan').filter(l => l.loanStatus === 'dipinjam');
@@ -3047,6 +3053,8 @@
       document.body.appendChild(confirmDiv);
     }
 
+    
+
     function editBook(bookId) {
       const book = appState.allRecords.find(r => r.__backendId === bookId);
       if (!book) {
@@ -4976,6 +4984,7 @@
     }
 
     init();
+
   </script>
  </body>
 </html>
