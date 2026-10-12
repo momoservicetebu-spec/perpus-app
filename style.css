@@ -1,0 +1,77 @@
+/* style.css */
+body.print-body { 
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+  display: flex; 
+  justify-content: center; 
+  padding: 40px; 
+  background-color: #f3f4f6;
+}
+
+.member-card { 
+  width: 400px; 
+  height: 220px; 
+  background: white;
+  border-radius: 12px; 
+  padding: 20px; 
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  border: 1px solid #e5e7eb;
+  position: relative;
+  overflow: hidden;
+}
+
+.member-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: #3b82f6; /* Warna primary default */
+}
+
+.card-header { 
+  text-align: center; 
+  border-bottom: 2px solid #f3f4f6; 
+  margin-bottom: 15px; 
+  padding-bottom: 10px; 
+}
+
+.card-header h2 { 
+  margin: 0; 
+  font-size: 18px; 
+  color: #1f2937; 
+  letter-spacing: 1px;
+}
+
+.card-header p { 
+  margin: 4px 0 0 0; 
+  font-size: 11px; 
+  color: #6b7280; 
+  text-transform: uppercase;
+}
+
+.card-content { 
+  font-size: 14px; 
+  line-height: 1.8; 
+  color: #374151;
+}
+
+.card-content strong { 
+  display: inline-block; 
+  width: 110px; 
+  color: #111827;
+}
+
+.card-footer { 
+  position: absolute; 
+  bottom: 15px; 
+  right: 20px; 
+  font-size: 10px; 
+  color: #9ca3af; 
+  font-family: monospace;
+}
+
+@media print {
+  body.print-body { background-color: white; padding: 0; }
+  .member-card { box-shadow: none; border: 1px solid #000; }
+}
