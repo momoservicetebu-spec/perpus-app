@@ -769,6 +769,71 @@
       `;
     }
 
+    // Section: Returns Management
+    function renderReturnsSection() {
+      const returns = getRecordsByType('loan').filter(l => l.loanStatus === 'dikembalikan');
+
+      return `
+        <div>
+          <h1 class="text-3xl font-bold mb-8" style="color: ${window.elementSdk?.config?.text_color || window.defaultConfig?.text_color || '#000000'};">Riwayat Pengembalian</h1>
+
+          <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead style="background: ${window.elementSdk?.config?.secondary_color || window.defaultConfig?.secondary_color || '#f3f4f6'};">
+                  <tr>
+                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || window.defaultConfig?.text_color || '#000000'};">Barcode Buku</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || window.defaultConfig?.text_color || '#000000'};">Nama Peminjam</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || window.defaultConfig?.text_color || '#000000'};">Jumlah Buku</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || window.defaultConfig?.text_color || '#000000'};">Tgl. Pinjam</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || window.defaultConfig?.text_color || '#000000'};">Tgl. Kembali</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || window.defaultConfig?.text_color || '#000000'};">Kondisi Buku</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || window.defaultConfig?.text_color || '#000000'};">Keterlambatan</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || window.defaultConfig?.text_color || '#000000'};">Denda</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${returns.map(ret => {
+                    // Proteksi variabel agar tidak error jika data lama tidak lengkap
+                    const condition = ret.bookCondition || 'Baik';
+                    const lateDays = ret.lateDays || 0;
+                    
+                    return `
+                      <tr class="table-row border-t">
+                        <td class="px-6 py-4 text-sm font-mono">${ret.loanBarcode || '-'}</td>
+                        <td class="px-6 py-4 font-semibold">${ret.loanMember || '-'}</td>
+                        <td class="px-6 py-4 text-sm">${ret.loanBooks || '-'}</td>
+                        <td class="px-6 py-4 text-sm">${ret.loanDate ? formatDate(ret.loanDate) : '-'}</td>
+                        <td class="px-6 py-4 text-sm">${ret.returnDate ? formatDate(ret.returnDate) : '-'}</td>
+                        
+                        <td class="px-6 py-4 text-sm font-medium">
+                          <span class="px-2 py-1 rounded-md ${
+                            condition === 'Baik' ? 'bg-green-100 text-green-700' :
+                            condition === 'Rusak' ? 'bg-orange-100 text-orange-700' :
+                            condition === 'Hilang' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }">
+                            ${condition}
+                          </span>
+                        </td>
+
+                        <td class="px-6 py-4 text-sm">${lateDays > 0 ? lateDays + ' hari' : '-'}</td>
+                        <td class="px-6 py-4">
+                          <span class="px-3 py-1 rounded-full text-sm font-semibold" style="background: ${ret.finePaid ? (window.elementSdk?.config?.success_color || '#10b981') : (window.elementSdk?.config?.danger_color || '#ef4444')}20; color: ${ret.finePaid ? (window.elementSdk?.config?.success_color || '#10b981') : (window.elementSdk?.config?.danger_color || '#ef4444')};">
+                            ${ret.finePaid ? 'Lunas' : lateDays > 0 ? 'Rp ' + (lateDays * 1000).toLocaleString('id-ID') : '-'}
+                          </span>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('') || '<tr><td colspan="8" class="px-6 py-12 text-center text-gray-500">Belum ada riwayat pengembalian.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     // Section: Visitors (Buku Tamu)
     function renderVisitorsSection() {
       const visitors = getRecordsByType('visitor');
