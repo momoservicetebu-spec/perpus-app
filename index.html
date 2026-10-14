@@ -768,13 +768,34 @@
       `;
     }
 
-    // Section: Returns Management
-    function renderReturnsSection() {
-      const returns = getRecordsByType('loan').filter(l => l.loanStatus === 'dikembalikan');
+    // Section: Loans Management
+    function renderLoansSection() {
+      const loans = getRecordsByType('loan').filter(l => l.loanStatus === 'dipinjam');
 
       return `
         <div>
-          <h1 class="text-3xl font-bold mb-8" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Riwayat Pengembalian</h1>
+          <!-- Header, Pencarian, & Tombol Tambah Peminjaman -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color}; min-width: max-content;">Data Peminjaman</h1>
+            
+            <!-- KOTAK PENCARIAN -->
+            <div class="w-full sm:flex-1 max-w-md">
+              <input 
+                type="text" 
+                placeholder="🔍 Cari barcode, nama peminjam, atau status..." 
+                onkeyup="filterTable(this.value, 'loansTbody')"
+                class="w-full px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition shadow-sm"
+              >
+            </div>
+
+            <button 
+              onclick="showAddLoanModal()"
+              class="w-full sm:w-auto px-4 md:px-6 py-2 md:py-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+              style="background: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};"
+            >
+              ➕ Tambah Peminjaman
+            </button>
+          </div>
 
           <div class="bg-white rounded-xl shadow overflow-hidden">
             <div class="overflow-x-auto">
@@ -785,27 +806,38 @@
                     <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Nama Peminjam</th>
                     <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Jumlah Buku</th>
                     <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Tgl. Pinjam</th>
-                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Tgl. Kembali</th>
-                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Keterlambatan</th>
-                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Denda</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Jatuh Tempo</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Status</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Aksi</th>
                   </tr>
                 </thead>
-                <tbody>
-                  ${returns.map(ret => `
-                    <tr class="table-row border-t">
-                      <td class="px-6 py-4 text-sm font-mono">${ret.loanBarcode}</td>
-                      <td class="px-6 py-4 font-semibold">${ret.loanMember}</td>
-                      <td class="px-6 py-4 text-sm">${ret.loanBooks}</td>
-                      <td class="px-6 py-4 text-sm">${formatDate(ret.loanDate)}</td>
-                      <td class="px-6 py-4 text-sm">${formatDate(ret.returnDate)}</td>
-                      <td class="px-6 py-4 text-sm">${ret.lateDays > 0 ? ret.lateDays + ' hari' : '-'}</td>
-                      <td class="px-6 py-4">
-                        <span class="px-3 py-1 rounded-full text-sm font-semibold" style="background: ${ret.finePaid ? window.elementSdk?.config?.success_color || defaultConfig.success_color : window.elementSdk?.config?.danger_color || defaultConfig.danger_color}20; color: ${ret.finePaid ? window.elementSdk?.config?.success_color || defaultConfig.success_color : window.elementSdk?.config?.danger_color || defaultConfig.danger_color};">
-                          ${ret.finePaid ? 'Lunas' : ret.lateDays > 0 ? 'Rp ' + (ret.lateDays * 1000).toLocaleString('id-ID') : '-'}
-                        </span>
-                      </td>
-                    </tr>
-                  `).join('') || '<tr><td colspan="7" class="px-6 py-12 text-center text-gray-500">Belum ada riwayat pengembalian.</td></tr>'}
+                <!-- ID loansTbody DITAMBAHKAN DI SINI -->
+                <tbody id="loansTbody">
+                  ${loans.map(loan => {
+                    const lateDays = calculateLateDays(loan.loanDueDate);
+                    const isLate = lateDays > 0;
+                    return `
+                      <tr class="table-row border-t">
+                        <td class="px-6 py-4 text-sm font-mono">${loan.loanBarcode}</td>
+                        <td class="px-6 py-4 font-semibold">${loan.loanMember}</td>
+                        <td class="px-6 py-4 text-sm">${loan.loanBooks}</td>
+                        <td class="px-6 py-4 text-sm">${formatDate(loan.loanDate)}</td>
+                        <td class="px-6 py-4 text-sm">${formatDate(loan.loanDueDate)}</td>
+                        <td class="px-6 py-4">
+                          <span class="px-3 py-1 rounded-full text-sm font-semibold" style="background: ${isLate ? window.elementSdk?.config?.danger_color || defaultConfig.danger_color : window.elementSdk?.config?.success_color || defaultConfig.success_color}20; color: ${isLate ? window.elementSdk?.config?.danger_color || defaultConfig.danger_color : window.elementSdk?.config?.success_color || defaultConfig.success_color};">
+                            ${isLate ? 'Terlambat ' + lateDays + ' hari' : 'Aktif'}
+                          </span>
+                          </td>
+                        <td class="px-6 py-4">
+                          <div class="flex gap-2">
+                            <button onclick="editLoan('${loan.__backendId}')" class="text-blue-600 hover:text-blue-800" title="Edit">✏️</button>
+                            <button onclick="processReturn('${loan.__backendId}')" class="text-green-600 hover:text-green-800" title="Kembalikan">📥</button>
+                            <button onclick="deleteLoan('${loan.__backendId}')" class="text-red-600 hover:text-red-800" title="Hapus">🗑️</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('') || '<tr><td colspan="7" class="px-6 py-12 text-center text-gray-500">Belum ada peminjaman aktif.</td></tr>'}
                 </tbody>
               </table>
             </div>
@@ -2953,6 +2985,7 @@
       
       const confirmDiv = document.createElement('div');
       confirmDiv.className = 'fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center z-50 p-4';
+      
       confirmDiv.innerHTML = `
         <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full">
           <h2 class="text-2xl font-bold mb-4" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Konfirmasi Pengembalian</h2>
@@ -2962,13 +2995,25 @@
             <p><strong>Jumlah Buku:</strong> ${loan.loanBooks}</p>
             <p><strong>Tanggal Pinjam:</strong> ${formatDate(loan.loanDate)}</p>
             <p><strong>Jatuh Tempo:</strong> ${formatDate(loan.loanDueDate)}</p>
-            ${lateDays > 0 ? `
+            
+           ${lateDays > 0 ? `
               <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p class="font-bold" style="color: ${window.elementSdk?.config?.danger_color || defaultConfig.danger_color};">Terlambat ${lateDays} hari</p>
                 <p class="text-sm">Denda: Rp ${(lateDays * 1000).toLocaleString('id-ID')}</p>
               </div>
-            ` : '<div class="p-4 bg-green-50 border border-green-200 rounded-lg"><p class="font-bold" style="color: ${window.elementSdk?.config?.success_color || defaultConfig.success_color};">Tepat waktu ✓</p></div>'}
+            ` : `<div class="p-4 bg-green-50 border border-green-200 rounded-lg"><p class="font-bold" style="color: ${window.elementSdk?.config?.success_color || defaultConfig.success_color};">Tepat waktu ✓</p></div>`}
+            <!-- DROPDOWN KONDISI BUKU -->
+            <div class="mt-4 pt-4 border-t border-gray-100">
+              <label class="block text-sm font-bold text-gray-700 mb-2">Kondisi Buku Saat Dikembalikan</label>
+              <select id="bookCondition" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="Baik">Baik</option>
+                <option value="Ada Coret Coret">Ada Coret Coret</option>
+                <option value="Rusak">Rusak</option>
+                <option value="Hilang">Hilang</option>
+              </select>
+            </div>
           </div>
+          
           <div class="flex gap-3">
             <button id="confirmReturn" class="flex-1 px-6 py-3 rounded-lg text-white font-semibold" style="background: ${window.elementSdk?.config?.success_color || defaultConfig.success_color};">
               Konfirmasi Pengembalian
@@ -2981,6 +3026,9 @@
       `;
 
       confirmDiv.querySelector('#confirmReturn').addEventListener('click', async function() {
+        // Ambil nilai kondisi buku dari dropdown
+        const selectedCondition = confirmDiv.querySelector('#bookCondition').value;
+
         this.innerHTML = '<div class="loading-spinner mx-auto"></div>';
         this.disabled = true;
 
@@ -2989,7 +3037,8 @@
           loanStatus: 'dikembalikan',
           returnDate: new Date().toISOString(),
           lateDays: lateDays,
-          finePaid: lateDays === 0
+          finePaid: lateDays === 0,
+          bookCondition: selectedCondition // Menyimpan pilihan ke database
         };
 
         const result = await window.dataSdk.update(updatedLoan);
