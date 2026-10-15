@@ -3085,12 +3085,6 @@
         }
       });
 
-      document.body.appendChild(modal);
-      
-      // Auto focus on barcode input
-      setTimeout(() => barcodeInput.focus(), 100);
-    
-
     // Action Functions
     async function processReturn(loanId) {
       const loan = appState.allRecords.find(r => r.__backendId === loanId);
