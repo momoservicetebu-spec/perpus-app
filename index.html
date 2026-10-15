@@ -2761,48 +2761,33 @@
       const members = getRecordsByType('member');
 
       const modal = document.createElement('div');
-      // Perbaikan: Tambahkan ID 'addLoanModal' dan pastikan z-index tinggi
-      modal.id = 'addLoanModal';
-      modal.className = 'fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center z-[100] p-4';
-      
-      // Perbaikan Layout: Menggunakan flex-col untuk struktur yang solid dan tidak tumpah
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 modal-backdrop flex items-center justify-center z-50 p-4';
       modal.innerHTML = `
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col relative">
-          
-          <!-- Tombol Tutup (X) di Kanan Atas -->
-          <button type="button" onclick="this.closest('#addLoanModal').remove()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold leading-none z-10">&times;</button>
-          
-          <!-- Header -->
-          <div class="p-6 border-b shrink-0">
-             <h2 class="text-2xl font-bold" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Tambah Peminjaman</h2>
-          </div>
-
-          <!-- Body / Isi Form (Bisa di-scroll jika kepanjangan) -->
-          <div class="p-6 overflow-y-auto flex-1">
-            <form id="addLoanForm" class="space-y-5">
-              
-              <!-- 1. Barcode Buku & Kamera -->
-              <div>
-                  <label class="block text-gray-700 text-sm font-bold mb-2">Barcode Buku</label>
-                  <div class="flex gap-2">
-                    <input type="text" id="loanBarcode" class="flex-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500" placeholder="Ketik atau Scan Barcode PC">
-                    
-                    <!-- Tombol Scan Kamera khusus muncul di HP (md:hidden) -->
-                    <button type="button" onclick="openCameraScanner('loanBarcode')" class="md:hidden bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center transition-colors shadow-md">
-                      📷
-                    </button>
-                  </div>
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <h2 class="text-2xl font-bold mb-6" style="color: ${window.elementSdk?.config?.text_color || defaultConfig.text_color};">Tambah Peminjaman</h2>
+          <form id="addLoanForm" class="space-y-4">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Barcode Buku</label>
+                <div class="flex gap-2">
+                  <!-- Pastikan ID input ini sesuai dengan kode simpan Anda, misalnya 'loanBarcode' -->
+                  <input type="text" id="loanBarcode" class="flex-1 w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500" placeholder="Ketik atau Scan Barcode PC">
                   
-                  <!-- Wadah Kamera HP (Sembunyi secara default) -->
-                  <div id="scanner-container" class="hidden mt-3 p-4 border rounded-lg bg-gray-50 relative shadow-inner">
-                    <button type="button" onclick="closeScanner()" class="absolute top-2 right-2 z-10 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shadow-md">&times;</button>
-                    <p class="text-center text-sm text-gray-500 mb-2 font-medium">Arahkan kamera ke barcode buku</p>
-                    <div id="reader" class="w-full rounded overflow-hidden"></div>
-                  </div>
+                  <!-- Tombol Scan Kamera khusus muncul di HP (md:hidden) -->
+                  <button type="button" onclick="openCameraScanner('loanBarcode')" class="md:hidden bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center transition-colors shadow-md">
+                    📷
+                  </button>
+                </div>
+                
+                <!-- Wadah Kamera HP (Sembunyi secara default) -->
+                <div id="scanner-container" class="hidden mt-3 p-4 border rounded-lg bg-gray-50 relative shadow-inner">
+                  <button type="button" onclick="closeScanner()" class="absolute top-2 right-2 z-10 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shadow-md">&times;</button>
+                  <p class="text-center text-sm text-gray-500 mb-2 font-medium">Arahkan kamera ke barcode buku</p>
+                  <div id="reader" class="w-full rounded overflow-hidden"></div>
+                </div>
               </div>
 
               <!-- Book Info Display -->
-              <div id="bookInfoDisplay" class="hidden mt-2 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div id="bookInfoDisplay" class="hidden mt-3 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <div class="flex items-start gap-3">
                   <div class="text-3xl">📚</div>
                   <div class="flex-1">
@@ -2813,12 +2798,12 @@
                       <span class="text-gray-600">Stok: <strong id="bookInfoStock" style="color: ${window.elementSdk?.config?.success_color || defaultConfig.success_color};"></strong></span>
                     </div>
                   </div>
-                  <button type="button" onclick="document.getElementById('bookInfoDisplay').classList.add('hidden'); document.getElementById('loanBarcode').value = ''; document.getElementById('loanBarcode').focus();" class="text-red-600 hover:text-red-800 font-bold">&times;</button>
+                  <button type="button" onclick="document.getElementById('bookInfoDisplay').classList.add('hidden'); document.getElementById('loanBarcode').value = ''; document.getElementById('loanBarcode').focus();" class="text-red-600 hover:text-red-800 font-bold">   </button>
                 </div>
               </div>
 
               <!-- Book Not Found Display -->
-              <div id="bookNotFound" class="hidden mt-2 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div id="bookNotFound" class="hidden mt-3 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <div class="flex items-start gap-3">
                   <div class="text-3xl">⚠️</div>
                   <div class="flex-1">
@@ -2826,63 +2811,56 @@
                     <p class="text-sm text-gray-600 mt-1">Barcode "<span id="notFoundBarcode"></span>" tidak terdaftar dalam koleksi.</p>
                     <p class="text-sm text-gray-600 mt-2">💡 Pastikan barcode benar atau tambahkan buku di menu "Koleksi Buku"</p>
                   </div>
-                  <button type="button" onclick="document.getElementById('bookNotFound').classList.add('hidden'); document.getElementById('loanBarcode').value = ''; document.getElementById('loanBarcode').focus();" class="text-red-600 hover:text-red-800 font-bold">&times;</button>
+                  <button type="button" onclick="document.getElementById('bookNotFound').classList.add('hidden'); document.getElementById('loanBarcode').value = ''; document.getElementById('loanBarcode').focus();" class="text-red-600 hover:text-red-800 font-bold">✖</button>
                 </div>
               </div>
+            </div>
 
-              <!-- 2. Nama Peminjam -->
+            <div>
+              <label class="block text-sm font-medium mb-2">Nama Peminjam *</label>
+              <div class="relative">
+                <input 
+                  type="text" 
+                  id="loanMemberSearch" 
+                  required 
+                  autocomplete="off"
+                  class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" 
+                  placeholder="Ketik nama anggota untuk mencari..."
+                >
+                <input type="hidden" id="loanMember" required>
+                <div id="memberSearchResults" class="absolute w-full bg-white border-2 border-gray-200 rounded-lg mt-1 max-h-60 overflow-y-auto z-10 hidden shadow-lg"></div>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Cari dan pilih nama anggota dari daftar</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium mb-2">Jumlah Buku *</label>
+              <input type="number" id="loanBooks" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" min="1" value="1">
+              <p class="text-xs text-gray-500 mt-1">Input jumlah buku yang dipinjam</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium mb-2">Nama Peminjam *</label>
-                <div class="relative">
-                  <input 
-                    type="text" 
-                    id="loanMemberSearch" 
-                    required 
-                    autocomplete="off"
-                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" 
-                    placeholder="Ketik nama anggota untuk mencari..."
-                  >
-                  <input type="hidden" id="loanMember" required>
-                  <div id="memberSearchResults" class="absolute w-full bg-white border rounded-lg mt-1 max-h-60 overflow-y-auto z-10 hidden shadow-lg"></div>
-                </div>
-                <p class="text-xs text-gray-500 mt-1">Cari dan pilih nama anggota dari daftar</p>
+                <label class="block text-sm font-medium mb-2">Tanggal Pinjam</label>
+                <input type="date" id="loanDate" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" value="${new Date().toISOString().split('T')[0]}">
               </div>
-
-              <!-- 3. Jumlah Buku -->
               <div>
-                <label class="block text-sm font-medium mb-2">Jumlah Buku *</label>
-                <input type="number" id="loanBooks" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" min="1" value="1">
+                <label class="block text-sm font-medium mb-2">Jatuh Tempo *</label>
+                <input type="date" id="loanDueDate" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg" value="${new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0]}">
               </div>
+            </div>
 
-              <!-- 4. Tanggal -->
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium mb-2">Tanggal Pinjam</label>
-                  <input type="date" id="loanDate" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" value="${new Date().toISOString().split('T')[0]}">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium mb-2">Jatuh Tempo *</label>
-                  <input type="date" id="loanDueDate" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500" value="${new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0]}">
-                </div>
-              </div>
-
-            </form>
-          </div>
-          
-          <!-- Footer / Tombol (Tetap di bawah) -->
-          <div class="p-6 border-t bg-gray-50 flex gap-3 shrink-0 rounded-b-xl">
-             <button type="button" onclick="this.closest('#addLoanModal').remove()" class="flex-1 px-6 py-3 rounded-lg border border-gray-300 font-semibold hover:bg-gray-100 transition-colors text-gray-700">
-               Batal
-             </button>
-             <button type="submit" form="addLoanForm" class="flex-1 px-6 py-3 rounded-lg text-white font-semibold transition-colors shadow-md hover:shadow-lg" style="background: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};">
-               Simpan Peminjaman
-             </button>
-          </div>
-
+            <div class="flex gap-3 pt-4">
+              <button type="submit" class="flex-1 px-6 py-3 rounded-lg text-white font-semibold" style="background: ${window.elementSdk?.config?.primary_color || defaultConfig.primary_color};">
+                Simpan Peminjaman
+              </button>
+              <button type="button" onclick="this.closest('.fixed').remove()" class="px-6 py-3 rounded-lg border-2 border-gray-300 font-semibold hover:bg-gray-50">
+                Batal
+              </button>
+            </div>
+          </form>
         </div>
       `;
-
-      document.body.appendChild(modal);
 
       // Setup barcode scanner functionality
       const barcodeInput = modal.querySelector('#loanBarcode');
@@ -2914,65 +2892,46 @@
           bookNotFound.classList.remove('hidden');
         }
       });
-      
-      // Setup Auto-complete pencarian member
-      setupMemberSearch(members);
-      
-      // Setup Form Submit
-      const form = document.getElementById('addLoanForm');
-      form.addEventListener('submit', handleAddLoanSubmit);
-    }
 
+      let html5QrcodeScanner = null;
+      let targetInputId = '';
 
-    // --- VARIABEL & FUNGSI KAMERA SCANNER (Letakkan di luar fungsi showAddLoanModal) ---
-    
-    let html5QrcodeScanner = null;
-    let targetInputId = '';
-
-    // Jadikan fungsi ini global agar bisa dipanggil dari tombol onclick di HTML
-    window.openCameraScanner = function(inputId) {
-      targetInputId = inputId; // Menyimpan ID input mana yang akan diisi hasil scan
-      document.getElementById('scanner-container').classList.remove('hidden');
-      
-      if (!html5QrcodeScanner) {
-        // Menggunakan library html5-qrcode
-        html5QrcodeScanner = new Html5QrcodeScanner(
-          "reader", 
-          { fps: 10, qrbox: {width: 250, height: 100} }, 
-          false
-        );
+      function openCameraScanner(inputId) {
+        targetInputId = inputId; // Menyimpan ID input mana yang akan diisi hasil scan
+        document.getElementById('scanner-container').classList.remove('hidden');
         
-        html5QrcodeScanner.render(onScanSuccess, onScanError);
+        if (!html5QrcodeScanner) {
+          html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", 
+            { fps: 10, qrbox: {width: 250, height: 100} }, // Bentuk kotak panjang karena barcode garis
+            false
+          );
+          
+          html5QrcodeScanner.render(onScanSuccess, onScanError);
+        }
       }
-    };
 
-    function onScanSuccess(decodedText, decodedResult) {
-      const inputElement = document.getElementById(targetInputId);
-      if(inputElement) {
-         inputElement.value = decodedText; 
-         
-         // Trigger event 'input' secara manual agar logika pencarian buku otomatis berjalan
-         const event = new Event('input', { bubbles: true });
-         inputElement.dispatchEvent(event);
+      function onScanSuccess(decodedText, decodedResult) {
+        // Masukkan hasil scan ke kolom input form peminjaman
+        document.getElementById(targetInputId).value = decodedText; 
+        
+        // Matikan kamera setelah berhasil scan
+        closeScanner();
       }
-      // Matikan kamera setelah berhasil scan
-      window.closeScanner();
-    }
 
-    function onScanError(errorMessage) {
-      // Dibiarkan kosong agar kamera terus mencari barcode
-    }
-
-    window.closeScanner = function() {
-      if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear().catch(error => {
-          console.error("Gagal menutup scanner", error);
-        });
-        html5QrcodeScanner = null;
+      function onScanError(errorMessage) {
+        // Dibiarkan kosong agar kamera terus mencari barcode
       }
-      const container = document.getElementById('scanner-container');
-      if(container) container.classList.add('hidden');
-    };
+
+      function closeScanner() {
+        if (html5QrcodeScanner) {
+          html5QrcodeScanner.clear().catch(error => {
+            console.error("Gagal menutup scanner", error);
+          });
+          html5QrcodeScanner = null;
+        }
+        document.getElementById('scanner-container').classList.add('hidden');
+      }
 
       // Setup member search functionality
       const searchInput = modal.querySelector('#loanMemberSearch');
@@ -3084,6 +3043,12 @@
           submitBtn.disabled = false;
         }
       });
+
+      document.body.appendChild(modal);
+      
+      // Auto focus on barcode input
+      setTimeout(() => barcodeInput.focus(), 100);
+    }
 
     // Action Functions
     async function processReturn(loanId) {
